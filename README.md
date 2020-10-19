@@ -10,3 +10,5 @@ pip install -r requirements-py3.txt
 cd cs231n/datasets
 ./get_datasets.sh
 ```
+
+Currently this repo only holds assignment 1
