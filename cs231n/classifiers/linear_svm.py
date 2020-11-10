@@ -77,7 +77,22 @@ def svm_loss_vectorized(W, X, y, reg):
   # Implement a vectorized version of the structured SVM loss, storing the    #
   # result in loss.                                                           #
   #############################################################################
-  pass
+  num_train = X.shape[0]
+
+  scores = np.dot(X, W)
+  correct_class_scores = np.choose(y, scores.T)[:, np.newaxis]
+
+  # mask - prevent calculating loss against correct classes
+  mask = np.ones(scores.shape, dtype=bool)
+  mask[range(scores.shape[0]), y] = False
+  scores_ = scores[mask].reshape(scores.shape[0], scores.shape[1]-1)
+
+  margin = np.maximum(0, scores_ - correct_class_scores + 1)
+
+  loss = np.sum(margin) / num_train
+  loss += reg * np.sum(W * W)
+
+
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
@@ -92,7 +107,23 @@ def svm_loss_vectorized(W, X, y, reg):
   # to reuse some of the intermediate values that you used to compute the     #
   # loss.                                                                     #
   #############################################################################
-  pass
+  # calculate margin w/o removing correct class score via mask
+  original_margin = scores - correct_class_scores + 1
+
+  # mask for values > 0
+  margin_mask = (original_margin > 0).astype(float)
+
+  # sum margins > 0, exclude the correct class w/ -1
+  margin_sum = margin_mask.sum(1) - 1
+
+  # make margin of the correct class to be - sum of margins > 0
+  margin_mask[range(margin_mask.shape[0]), y] = -margin_sum
+
+  # calculate gradient
+  dW = np.dot(X.T, margin_mask)
+
+  # average the batch and add regularization term
+  dW = dW / num_train + 2 * reg * W
   #############################################################################
   #                             END OF YOUR CODE                              #
   #############################################################################
