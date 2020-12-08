@@ -67,7 +67,6 @@ def softmax_loss_vectorized(W, X, y, reg):
   """
   # Initialize the loss and gradient to zero.
   loss = 0.0
-  dW = np.zeros_like(W)
 
   #############################################################################
   # TODO: Compute the softmax loss and its gradient using no explicit loops.  #
@@ -75,7 +74,20 @@ def softmax_loss_vectorized(W, X, y, reg):
   # here, it is easy to run into numeric instability. Don't forget the        #
   # regularization!                                                           #
   #############################################################################
-  pass
+  dW = np.zeros_like(W)
+
+  scores = np.dot(X, W)
+  # solves the numeric stability problem
+  scores = scores - scores.max(axis=1)[:, np.newaxis]
+  correct_class_scores = np.choose(y, scores.T)[:, np.newaxis]
+
+  correct_class_scores_exp = np.exp(correct_class_scores)
+  loss_1 = correct_class_scores_exp / np.exp(scores).sum(axis=1)[:, np.newaxis]
+
+  # TODO
+  # build a mask for the correct class scores, to exclude from sum()
+  # 
+
   #############################################################################
   #                          END OF YOUR CODE                                 #
   #############################################################################
