@@ -82,9 +82,9 @@ def softmax_loss_vectorized(W, X, y, reg):
 
   correct_class_scores_exp = np.exp(correct_class_scores)
   scores_exp_sum = np.exp(scores).sum(axis=1)[:, np.newaxis]
-  scores_exp_minus_correct_class_scores = scores_exp_sum
+  # scores_exp_minus_correct_class_scores = scores_exp_sum
   # now remove the correct_class_scores
-  loss_step = -np.log(correct_class_scores_exp / scores_exp_minus_correct_class_scores)
+  loss_step = -np.log(correct_class_scores_exp / scores_exp_sum)
   loss += np.sum(loss_step)
 
   # Compute the gradient

@@ -75,7 +75,9 @@ class TwoLayerNet(object):
     # Store the result in the scores variable, which should be an array of      #
     # shape (N, C).                                                             #
     #############################################################################
-    pass
+    relu = lambda x: np.maximum(0, x)
+    h1 = relu(X.dot(W1) + b1) # (5, 10)
+    scores = h1.dot(W2) + b2  # (5, 3)
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
@@ -92,11 +94,25 @@ class TwoLayerNet(object):
     # in the variable loss, which should be a scalar. Use the Softmax           #
     # classifier loss.                                                          #
     #############################################################################
-    pass
+    # account for numeric stability
+    scores -= scores.max(axis=1)[:, np.newaxis]
+    correct_class_scores = np.choose(y, scores.T)[:, np.newaxis]
+
+    correct_class_scores_exp = np.exp(correct_class_scores)
+    scores_exp_sum = np.exp(scores).sum(axis=1)[:, np.newaxis]
+    loss_step = -np.log(correct_class_scores_exp / scores_exp_sum)
+    loss = np.sum(loss_step)
+
+    # average
+    loss = loss / N
+
+    # regularization
+    loss += reg * (np.sum(W1 * W1) + np.sum(W2 * W2))
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
-
+    
     # Backward pass: compute gradients
     grads = {}
     #############################################################################
