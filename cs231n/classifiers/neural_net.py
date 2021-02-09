@@ -76,7 +76,11 @@ class TwoLayerNet(object):
     # shape (N, C).                                                             #
     #############################################################################
     relu = lambda x: np.maximum(0, x)
-    h1 = relu(X.dot(W1) + b1) # (5, 10)
+    # first layer pre-activation
+    pre_1 = X.dot(W1) + b1 # (5, 10)
+    # First layer activation
+    h1 = relu(pre_1)
+    # Second layer pre-activation
     scores = h1.dot(W2) + b2  # (5, 3)
     #############################################################################
     #                              END OF YOUR CODE                             #
@@ -98,8 +102,9 @@ class TwoLayerNet(object):
     scores -= scores.max(axis=1)[:, np.newaxis]
     correct_class_scores = np.choose(y, scores.T)[:, np.newaxis]
 
-    correct_class_scores_exp = np.exp(correct_class_scores)
     scores_exp_sum = np.exp(scores).sum(axis=1)[:, np.newaxis]
+    softmax_matrix = np.exp(scores) / scores_exp_sum
+    correct_class_scores_exp = np.exp(correct_class_scores)
     loss_step = -np.log(correct_class_scores_exp / scores_exp_sum)
     loss = np.sum(loss_step)
 
@@ -113,6 +118,10 @@ class TwoLayerNet(object):
     #                              END OF YOUR CODE                             #
     #############################################################################
     
+    # dscores starts as a softmax matrix of our scores
+    dscores = np.exp(scores) / scores_exp_sum
+    dscores[range(N), y] -= 1
+    dscores /= N
     # Backward pass: compute gradients
     grads = {}
     #############################################################################
@@ -120,7 +129,22 @@ class TwoLayerNet(object):
     # and biases. Store the results in the grads dictionary. For example,       #
     # grads['W1'] should store the gradient on W1, and be a matrix of same size #
     #############################################################################
-    pass
+    grads['W2'] = np.dot(h1.T, dscores)
+    grads['b2'] = np.sum(dscores, axis=0)
+
+    # Propogating to the hidden layer
+    dhidden = np.dot(dscores, W2.T)
+
+    # Backprop the ReLU non-linearity
+    dhidden[pre_1 <= 0] = 0
+    
+    grads['W1'] = np.dot(X.T, dhidden)
+    grads['b1'] = np.sum(dhidden, axis=0)
+
+    # regularize the gradients
+    grads['W2'] += reg * 2 * W2
+    grads['W1'] += reg * 2 * W1
+
     #############################################################################
     #                              END OF YOUR CODE                             #
     #############################################################################
